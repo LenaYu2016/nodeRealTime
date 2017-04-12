@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+</head>
+<body>
+File:<textarea id="file"></textarea>
+<div>File Name:<input type="text" id="fileName"></div>
+<button class="btn btn-default" id="create">Create File</button>
+<div id="game" style="width:1200px;height:700px;border:solid black 1px;">
+</div>
+<script src="/socket.io/socket.io.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+<script>
+    var socket = io();
+    $('#file').keyup((e)=>{
+        socket.emit('text',e.target.value);
+    });
+    socket.on('read',(txt)=>{
+        $('#file').val(txt);
+    });
+    $('#create').click(()=>{
+
+        });
+    let me={
+        template:'<div id="me" style="width:15px;height:15px;border:solid aquamarine 1px;background-color: aquamarine;position:relative;top:0;left:0;"></div>',
+        position:{top:0,left:0},
+        move(d,step){
+            if(d==='up'){this.position.top=this.position.top-step;}
+            if(d==='down'){this.position.top=this.position.top+step;}
+            if(d==='right'){this.position.left=this.position.left+step;}
+            if(d==='left'){this.position.left=this.position.left-step;}
+            $('#me').css('top',this.position.top).css('left',this.position.left);
+        },
+       init(){
+            $('#game').append(this.template);
+       }
+    };
+    me.init();
+    $(window).on('touchmove',(e)=>{e.preventDefault();});
+     $('body').on('keydown',(e)=>{
+           const code= event.which || event.keyCode;
+         if( code ===37){me.move('left',15);}
+         if( code ===38){me.move('up',15);}
+         if( code ===39){me.move('right',15);}
+         if( code ===40){me.move('down',15);}
+
+         return false;
+     });
+</script>
+
+</body>
+</html>
