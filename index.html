@@ -42,7 +42,6 @@ File:<textarea id="file"></textarea>
        }
     };
     me.init();
-    $(window).on('touchmove',(e)=>{e.preventDefault();});
      $('body').on('keydown',(e)=>{
            const code= event.which || event.keyCode;
          if( code ===37){me.move('left',15);}
