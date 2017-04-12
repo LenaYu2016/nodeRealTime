@@ -31,14 +31,27 @@ File:<textarea id="file"></textarea>
         template:'<div id="me" style="width:15px;height:15px;border:solid aquamarine 1px;background-color: aquamarine;position:relative;top:0;left:0;"></div>',
         position:{top:0,left:0},
         move(d,step){
-            if(d==='up'){this.position.top=this.position.top-step;}
-            if(d==='down'){this.position.top=this.position.top+step;}
-            if(d==='right'){this.position.left=this.position.left+step;}
-            if(d==='left'){this.position.left=this.position.left-step;}
-            $('#me').css('top',this.position.top).css('left',this.position.left);
+
+                if (d === 'up' && this.position.top>0 ) {
+                    this.position.top = this.position.top - step;
+                }
+                if (d === 'down'&& this.position.top<=675 ) {
+                    this.position.top = this.position.top + step;
+                }
+                if (d === 'right'&& this.position.left<=1175) {
+                    this.position.left = this.position.left + step;
+                }
+                if (d === 'left' && this.position.left>0) {
+                    this.position.left = this.position.left - step;
+                }
+                $('#me').css('top', this.position.top).css('left', this.position.left);
+
         },
        init(){
             $('#game').append(this.template);
+       },
+       bomb(){
+           $('#game').append('<div></div>');
        }
     };
     me.init();
@@ -48,7 +61,7 @@ File:<textarea id="file"></textarea>
          if( code ===38){me.move('up',15);}
          if( code ===39){me.move('right',15);}
          if( code ===40){me.move('down',15);}
-
+         if(code===8){me.bomb();}
          return false;
      });
 </script>
