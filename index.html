@@ -27,11 +27,13 @@ File:<textarea id="file"></textarea>
     $('#create').click(()=>{
 
         });
+    socket.on('die',({e1,e2})=>{console.log(e1.top,e2.top)});
     const id=Math.round(Math.random()*10000)+1;
     let me={
         template:`<div id="${id}" style="width:15px;height:15px;border:solid aquamarine 1px;background-color: aquamarine;position:absolute;top:0;left:0;"></div>`,
         position:{top:0,left:0},
         bombs:[],
+        id:id,
         move(d,step){
 
                 if (d === 'up' && this.position.top>0 ) {
@@ -48,7 +50,7 @@ File:<textarea id="file"></textarea>
                 }
                 console.log('#'+id);
                 $(`#${id}`).css('top', this.position.top).css('left', this.position.left);
-
+                socket.emit('move',this);
         },
        init(){
             $('#game').append(this.template);
@@ -58,7 +60,6 @@ File:<textarea id="file"></textarea>
            $('#game').append(`<div id="${bombId}" style="width:15px;height:15px;border:solid black 1px;background-color: black;position:absolute;
              top:${this.position.top}px;left:${this.position.left}px;"></div>`);
            this.bombs.push({top:this.position.top,left:this.position.left,level:2});
-           console.log(this.position);
            this.setting(2000,bombId).then(this.explode);
 
        },
@@ -77,6 +78,8 @@ File:<textarea id="file"></textarea>
                  eleft2=$(`#${bombId}`).css('left');
                 $('#game').append(`<div id="${eId1}" style="position: absolute;top:${etop1};left:${eleft1};width:75px;height:15px;background-color: cadetblue;"></div>`);
                 $('#game').append(`<div id="${eId2}" style="position: absolute;top:${etop2};left:${eleft2};width:15px;height:75px;background-color: cadetblue;"></div>`);
+                socket.emit('explode',{e1:{top:etop1,left:eleft1},e2:{top:etop2,left:eleft2}});
+
                 setTimeout(()=>{
                     console.log('remove');
                     $(`#${eId1}`).remove();
@@ -98,6 +101,11 @@ File:<textarea id="file"></textarea>
          if(code===32){ me.bomb();}
          return false;
      });
+    socket.emit('login',me);
+    socket.on('newuser',(e)=>{
+        const newId=Math.round(Math.random()*10000)+1;
+       $('#game').append(`<div id="${newId}" style="width:15px;height:15px;border:solid aquamarine 1px;background-color: aquamarine;position:absolute;top:0;left:0;"></div>`);
+    });
 </script>
 
 </body>
