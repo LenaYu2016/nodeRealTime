@@ -16,6 +16,7 @@ File:<textarea id="file"></textarea>
 <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
 <script>
     var socket = io();
     socket.on('connect', function() {
@@ -41,7 +42,9 @@ seagreen;position:absolute;top:${e.position.top}px;left:${e.position.left}px;"><
 
         });
         socket.on('die',({e1,e2})=>{console.log(e1.top,e2.top)});
+       let bomb={
 
+       };
 
 
         let me={
@@ -71,12 +74,12 @@ seagreen;position:absolute;top:${e.position.top}px;left:${e.position.left}px;"><
                 $('#game').append(this.template);
             },
             bomb(){
-                const bombId=Math.round(Math.random()*10000)+10000;
+                const bombId=_.random(10000, 20000);
                 $('#game').append(`<div id="${bombId}" style="width:15px;height:15px;border:solid black 1px;background-color: black;position:absolute;
              top:${this.position.top}px;left:${this.position.left}px;"></div>`);
                 this.bombs.push({top:this.position.top,left:this.position.left,level:2});
                 this.setting(2000,bombId).then(this.explode).then(this.remove);
-
+               socket.emit('bomb',{id:bombId,position:{top:this.position.top,left:this.position.left}});
             },
             setting(time,bombId){
                 return new Promise((resolve, reject)=>{
@@ -91,7 +94,7 @@ seagreen;position:absolute;top:${e.position.top}px;left:${e.position.left}px;"><
             },
             explode(bombId){
                 return new Promise((resolve,reject)=>{
-                    const eId1=Math.round(Math.random()*10000)+20000,
+                    const eId1=_.random(20000, 40000),
                         etop1=$(`#${bombId}`).css('top'),
                         eleft1=parseInt($(`#${bombId}`).css('left'))-30+'px',
                         eId2=Math.round(Math.random()*10000)+20000,

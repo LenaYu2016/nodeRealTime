@@ -3,10 +3,13 @@ const app = require('express')(),
       fs = require('fs'),
       http = require('http').Server(app),
       io = require('socket.io')(http),
+      _ = require('lodash'),
       User=require('./user.js'),
       Bomb=require('./Bomb.js'),
       UserService=require('./UserService.js'),
-      userService=new UserService();
+      BombService=require('./BombService.js'),
+      userService=new UserService(),
+      bombService=new BombService();
 app.get('/', (req, res)=>{
     res.sendFile(__dirname + '/index.html');
 });
