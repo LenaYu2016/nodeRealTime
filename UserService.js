@@ -8,16 +8,18 @@ module.exports= class UserService{
     add(user){
         this.userLists.push(user);
     }
-    remove(id) {
+    remove(sd) {
         this.userLists.forEach((e,index)=>{
-            if(e.id===id){
+            if(e.socketId===sd){
                 this.userLists.splice( index,1);
             }
         });
 
     };
    find(id){
-       return this.userLists.find((e)=>e.id===id);
+       return this.userLists.find((e)=>e.socketId===id);
    }
-
+   getAll(){
+       return this.userLists;
+   }
 };

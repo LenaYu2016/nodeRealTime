@@ -4,6 +4,7 @@ const app = require('express')(),
       http = require('http').Server(app),
       io = require('socket.io')(http),
       User=require('./user.js'),
+      Bomb=require('./Bomb.js'),
       UserService=require('./UserService.js'),
       userService=new UserService();
 app.get('/', (req, res)=>{
@@ -12,6 +13,8 @@ app.get('/', (req, res)=>{
 
 io.on('connection', socket=>{
     console.log('a user connected');
+    socket.emit('getId',socket.id);
+    socket.emit('load',userService.getAll());
     fs.readFile('test.txt',(err,data)=>{
         if (err) {
             return console.log(err);
@@ -33,16 +36,18 @@ io.on('connection', socket=>{
         );
     socket.on('disconnect', ()=>{
         console.log('user disconnected');
-
+        userService.remove(socket.id);
+        socket.broadcast.emit('leave',socket.id);
     });
     socket.on('login',(me)=>{
-   let newuser =new User(me.id,me.position);
-  userService.add(newuser);
-        socket.broadcast.emit('newuser',newuser);
+      let newuser =new User(me.position,socket.id);
+      userService.add(newuser);
+      socket.broadcast.emit('newuser',newuser);
     });
     socket.on('move',(e)=>{
-        userService.find(e.id).position=e.position;
-        socket.broadcast.emit('newstep',e);
+        userService.find(e.sd).position=e.position;
+        socket.broadcast.emit('newstep',userService.find(e.sd));
     });
+
 });
 http.listen(3000, ()=> console.log('listening on *:3000'));

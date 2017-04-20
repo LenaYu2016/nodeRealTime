@@ -3,8 +3,8 @@
  */
 module.exports= class User{
 
-    constructor(id,position){
-        this.id=id;
-        this.position=position
+    constructor(position,sd){
+        this.position=position;
+        this.socketId=sd;
     }
 };
