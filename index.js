@@ -51,6 +51,9 @@ io.on('connection', socket=>{
         userService.find(e.sd).position=e.position;
         socket.broadcast.emit('newstep',userService.find(e.sd));
     });
-
+    socket.on('bomb',(e)=>{
+        bombService.add(e.id,{top:e.position.top,left:e.position.left});
+        socket.broadcast.emit('newbomb',e);
+    });
 });
 http.listen(3000, ()=> console.log('listening on *:3000'));

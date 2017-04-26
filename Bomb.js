@@ -1,5 +1,5 @@
 module.exports=class Bomb{
-    constructor(){
+    constructor(id,position){
         this.id=id;
         this.position=position;
     }

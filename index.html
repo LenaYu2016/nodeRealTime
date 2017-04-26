@@ -10,7 +10,7 @@
 File:<textarea id="file"></textarea>
 <div>File Name:<input type="text" id="fileName"></div>
 <button class="btn btn-default" id="create">Create File</button>
-<div id="game" style="width:1200px;height:700px;border:solid black 1px;position:absolute;top:200px;left:0;">
+<div id="game" style="width:1200px;height:690px;border:solid black 1px;position:absolute;top:200px;left:0;">
 </div>
 <script src="/socket.io/socket.io.js"></script>
 <script src="https://code.jquery.com/jquery-3.1.1.slim.min.js" integrity="sha384-A7FZj7v+d/sdmMqp/nOQwliLvUsJfDHW+k9Omg/a/EheAdgtzNs3hpfag6Ed950n" crossorigin="anonymous"></script>
@@ -29,9 +29,7 @@ File:<textarea id="file"></textarea>
         socket.on('load',(ulists)=>{
             userList.push(...ulists);
             console.log(userList);
-            let ts=ulists.map(e=>`<div id="${e.socketId}" style="width:15px;height:15px;border:solid seagreen 1px;background-color:
-seagreen;position:absolute;top:${e.position.top}px;left:${e.position.left}px;"></div>`);
-            ts.forEach((e)=>{
+            ulists.map(e=>me.template(e.socketId,'seagreen',e.position.top,e.position.left)).forEach((e)=>{
                 $('#game').append(e);
             });
         });
@@ -43,21 +41,80 @@ seagreen;position:absolute;top:${e.position.top}px;left:${e.position.left}px;"><
         });
         socket.on('die',({e1,e2})=>{console.log(e1.top,e2.top)});
        let bomb={
+   template(bombId,{top,left}){return `<div id="${bombId}" style="width:15px;height:15px;border:solid black 1px;border-radius:7.5px;background-color: black;position:absolute;
+             top:${top}px;left:${left}px;"></div>`;},
+           setting(time,bombId){
+               return new Promise((resolve, reject)=>{
+                   setTimeout(()=>resolve(bombId),time);
+               });
+           },
+           remove({eId1,eId2,bombId}){
+               console.log('remove');
+               $(`#${eId1}`).remove();
+               $(`#${eId2}`).remove();
+               $(`#${bombId}`).remove();
+           },
+           explode(bombId){
+               return new Promise((resolve,reject)=>{
+                   const eId1=_.random(20000, 40000),
+                       etop1=$(`#${bombId}`).css('top'),
 
+                       eId2=_.random(20000, 40000),
+
+                       eleft2=$(`#${bombId}`).css('left');
+                   let  eleft1=parseInt($(`#${bombId}`).css('left'))-30+'px',
+                       etop2=parseInt($(`#${bombId}`).css('top'))-30+'px',
+                   w=0+'px';
+                   h=0+'px';
+                   console.log($(`#${bombId}`).css('top'));
+                   if(parseInt(eleft1)>1125){
+                        w=1200-parseInt(eleft1)+'px';
+
+                   }else if(parseInt(eleft1)<0){
+                       w=75+parseInt(eleft1)+'px';
+                       eleft1=0+'px';
+
+                   }else{
+                       w=75+'px';
+                   }
+                   console.log(w);
+                   $('#game').append(`<div id="${eId1}" style="position: absolute;top:${etop1};left:${eleft1};width:${w};height:15px;background-color: cadetblue;"></div>`);
+                   console.log(etop2);
+                   if(parseInt(etop2)<0){
+                      h=75+parseInt(etop2)+'px';
+                      etop2=0+'px';
+                   }else if(parseInt(etop2)>615){
+                       h=75-(parseInt(etop2)-615)+'px';
+
+                   }else{
+                       h=75+'px';
+                   }
+                   $('#game').append(`<div id="${eId2}" style="position: absolute;top:${etop2};left:${eleft2};width:15px;height:${h};background-color: cadetblue;"></div>`);
+                   socket.emit('explode',{e1:{top:etop1,left:eleft1},e2:{top:etop2,left:eleft2}});
+
+                   setTimeout(()=>{
+                       resolve({eId1:eId1,eId2:eId2,bombId:bombId});
+                   },500);
+               });
+           }
        };
 
-
+//<div id="${sd}" style="width:15px;height:15px;border:solid aquamarine 1px;background-color: aquamarine;position:absolute;top:0;left:0;"></div>
+  //<div id="${e.socketId}" style="width:15px;height:15px;border:solid seagreen 1px;background-color:
+        //seagreen;position:absolute;top:${e.position.top}px;left:${e.position.left}px;"></div>`
         let me={
-            template:`<div id="${sd}" style="width:15px;height:15px;border:solid aquamarine 1px;background-color: aquamarine;position:absolute;top:0;left:0;"></div>`,
+            template(id,color,top,left){
+                return `<div id="${id}" style="width:15px;height:15px;border:solid ${color} 1px;background-color: ${color};position:absolute;top:${top}px;left:${left}px;"></div>`;
+            },
             position:{top:0,left:0},
             bombs:[],
             sd:sd,
             move(d,step){
-
                 if (d === 'up' && this.position.top>0 ) {
                     this.position.top = this.position.top - step;
                 }
-                if (d === 'down'&& this.position.top<=675 ) {
+                console.log(this.position.top);
+                if (d === 'down'&& this.position.top<675 ) {
                     this.position.top = this.position.top + step;
                 }
                 if (d === 'right'&& this.position.left<=1175) {
@@ -71,46 +128,15 @@ seagreen;position:absolute;top:${e.position.top}px;left:${e.position.left}px;"><
                 socket.emit('move',this);
             },
             init(){
-                $('#game').append(this.template);
+                $('#game').append(this.template(sd,'aquamarine',this.position));
             },
             bomb(){
                 const bombId=_.random(10000, 20000);
-                $('#game').append(`<div id="${bombId}" style="width:15px;height:15px;border:solid black 1px;background-color: black;position:absolute;
-             top:${this.position.top}px;left:${this.position.left}px;"></div>`);
+                $('#game').append(bomb.template(bombId,{top:this.position.top,left:this.position.left}));
                 this.bombs.push({top:this.position.top,left:this.position.left,level:2});
-                this.setting(2000,bombId).then(this.explode).then(this.remove);
+                bomb.setting(2000,bombId).then(bomb.explode).then(bomb.remove);
                socket.emit('bomb',{id:bombId,position:{top:this.position.top,left:this.position.left}});
             },
-            setting(time,bombId){
-                return new Promise((resolve, reject)=>{
-                    setTimeout(()=>resolve(bombId),time);
-                });
-            },
-            remove({eId1,eId2,bombId}){
-                console.log('remove');
-                $(`#${eId1}`).remove();
-                $(`#${eId2}`).remove();
-                $(`#${bombId}`).remove();
-            },
-            explode(bombId){
-                return new Promise((resolve,reject)=>{
-                    const eId1=_.random(20000, 40000),
-                        etop1=$(`#${bombId}`).css('top'),
-                        eleft1=parseInt($(`#${bombId}`).css('left'))-30+'px',
-                        eId2=Math.round(Math.random()*10000)+20000,
-                        etop2=parseInt($(`#${bombId}`).css('top'))-30+'px',
-                        eleft2=$(`#${bombId}`).css('left');
-                    $('#game').append(`<div id="${eId1}" style="position: absolute;top:${etop1};left:${eleft1};width:75px;height:15px;background-color: cadetblue;"></div>`);
-                    $('#game').append(`<div id="${eId2}" style="position: absolute;top:${etop2};left:${eleft2};width:15px;height:75px;background-color: cadetblue;"></div>`);
-                    socket.emit('explode',{e1:{top:etop1,left:eleft1},e2:{top:etop2,left:eleft2}});
-
-                    setTimeout(()=>{
-                        resolve({eId1:eId1,eId2:eId2,bombId:bombId});
-                    },500);
-                });
-            }
-
-
         };
         me.init();
         $('body').on('keydown',(e)=>{
@@ -126,7 +152,8 @@ seagreen;position:absolute;top:${e.position.top}px;left:${e.position.left}px;"><
         socket.on('newuser',(e)=>{
             userList.push(e);
             console.log(e.socketId);
-            $('#game').append(`<div id="${e.socketId}" style="width:15px;height:15px;border:solid seagreen 1px;background-color: seagreen;position:absolute;top:0;left:0;"></div>`);
+            console.log(me.template(e.socketId,'seagreen'));
+            $('#game').append(me.template(e.socketId,'seagreen',0,0));
         });
         socket.on('newstep',(e)=>{
             let u=userList.find((x)=>x.socketId===e.socketId);
@@ -137,6 +164,10 @@ seagreen;position:absolute;top:${e.position.top}px;left:${e.position.left}px;"><
         socket.on('leave',(sid)=>{
             userList=userList.filter((e)=>e.socketId!==sid);
             $(`#${sid}`).remove();
+        });
+        socket.on('newbomb',(e)=>{
+            $('#game').append(bomb.template(e.id,{top:e.position.top,left:e.position.left}));
+            bomb.setting(2000,e.id).then(bomb.explode).then(bomb.remove);
         });
     });
 
