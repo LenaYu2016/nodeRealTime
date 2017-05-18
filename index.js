@@ -9,19 +9,21 @@ const app = require('express')(),
       UserService=require('./UserService.js'),
       BombService=require('./BombService.js'),
       ExplodeBombService=require('./ExplodeBombService.js'),
+      FruitService=require('./FruitService');
       userService=new UserService(),
       bombService=new BombService(),
       explodeBombService=new ExplodeBombService();
-
+      fruitService=new FruitService();
 
 app.get('/', (req, res)=>{
     res.sendFile(__dirname + '/index.html');
 });
+fruitService.init(20);
 
 io.on('connection', socket=>{
     console.log('a user connected');
     socket.emit('getId',socket.id);
-    socket.emit('load',userService.getAll());
+    socket.emit('load',{users:userService.getAll(),fruits:fruitService.getAll()});
     fs.readFile('test.txt',(err,data)=>{
         if (err) {
             return console.log(err);

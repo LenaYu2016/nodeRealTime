@@ -47,13 +47,7 @@ File:<textarea id="file"></textarea>
         $('#file').keyup((e)=>{
             socket.emit('text',e.target.value);
         });
-        socket.on('load',(ulists)=>{
-            userList.push(...ulists);
-            console.log(userList);
-            ulists.map(e=>me.template(e.socketId,'seagreen',e.position.top,e.position.left)).forEach((e)=>{
-                $('#game').append(e);
-            });
-        });
+
         socket.on('read',(txt)=>{
             $('#file').val(txt);
         });
@@ -110,6 +104,38 @@ File:<textarea id="file"></textarea>
                });
            }
        };
+        socket.on('load',({users,fruits})=>{
+            userList.push(...users);
+            console.log(userList);
+            users.map(e=>me.template(e.socketId,'seagreen',e.position.top,e.position.left)).forEach((e)=>{
+                $('#game').append(e);
+            });
+            console.log(fruits);
+            fruits.map(e=>{
+                let color=e.type?'LightPink':'RebeccaPurple';
+
+                 if(e.type&&e.name==='apple') {
+                     url = 'http://www.pngmart.com/files/1/Apple-Fruit-PNG-Transparent-Image.png';
+                 }
+              if((!e.type)&&e.name==='apple'){
+                     url='http://pngimg.com/uploads/apple/apple_PNG12404.png';
+              }
+              if(e.type&&e.name==='mango'){
+                     url='http://www.pngmart.com/files/1/Yellow-Mango-PNG.png';
+              }
+            if((!e.type)&&e.name==='mango'){
+                url='http://www.pngpix.com/wp-content/uploads/2016/03/Mango-PNG-image.png';
+            }
+                return fruit.template(e.id,url,e.position.top,e.position.left)}).forEach((e)=>{
+                $('#game').append(e);
+
+            });
+        });
+        let fruit={
+            template(id,url,top,left){
+                return `<img src='${url}' id="${id}" style="border-radius:7.5px;width:15px;height:15px;position:absolute;top:${top}px;left:${left}px;" />`;
+            },
+        };
         let me={
             template(id,color,top,left){
                 return `<div id="${id}" style="width:15px;height:15px;border:solid ${color} 1px;background-color: ${color};position:absolute;top:${top}px;left:${left}px;"></div>`;
@@ -199,8 +225,9 @@ File:<textarea id="file"></textarea>
            if(deads.find(e=>e===me.sd)){
                $("#myModal").modal();
                    $(`#${me.sd}`).remove();
-                   me.sd=null;
+
                socket.emit('dead',me.sd);
+               me.sd=null;
            }
         });
     });
