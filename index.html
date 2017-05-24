@@ -10,6 +10,7 @@
 File:<textarea id="file"></textarea>
 <div>File Name:<input type="text" id="fileName"></div>
 <button class="btn btn-default" id="create">Create File</button>
+<div id="loading"><img src="https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif"></div>
 <div id="game" style="width:1200px;height:690px;border:solid black 1px;position:absolute;top:200px;left:0;">
 </div>
 <div class="modal fade" id="myModal" role="dialog">
@@ -40,6 +41,7 @@ File:<textarea id="file"></textarea>
 <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
 <script>
     var socket = io();
+    $('#game').hide();
     socket.on('connect', function() {
         console.log(socket.io.engine.id);
         let userList=[];
@@ -47,7 +49,7 @@ File:<textarea id="file"></textarea>
         $('#file').keyup((e)=>{
             socket.emit('text',e.target.value);
         });
-
+        //$('#game').hide();
         socket.on('read',(txt)=>{
             $('#file').val(txt);
         });
@@ -55,9 +57,9 @@ File:<textarea id="file"></textarea>
        let bomb={
            template(bombId,{top,left}){return `<div id="${bombId}" style="width:15px;height:15px;border:solid black 1px;border-radius:7.5px;background-color: black;position:absolute;
              top:${top}px;left:${left}px;"></div>`;},
-           setting(time,e){
+           setting(time,id,level){
                return new Promise((resolve, reject)=>{
-                   setTimeout(()=>resolve(e),time);
+                   setTimeout(()=>resolve({id,level}),time);
                });
            },
            remove({eId1,eId2,bombId}){
@@ -66,32 +68,35 @@ File:<textarea id="file"></textarea>
                $(`#${eId2}`).remove();
                $(`#${bombId}`).remove();
                socket.emit('remove',{eId1,eId2,bombId});
-
            },
-           explode(bombId){
-               const eId1=_.random(20000, 40000),
-                   etop1=$(`#${bombId}`).css('top'),
-                   eId2=_.random(20000, 40000),
-                   eleft2=$(`#${bombId}`).css('left');
-               let eleft1=parseInt($(`#${bombId}`).css('left'))-30+'px',
-                   etop2=parseInt($(`#${bombId}`).css('top'))-30+'px',
+           explode({id,level}){
+               const eId1=_.random(50000,60000),
+                   etop1=$(`#${id}`).css('top'),
+                   eId2=_.random(50000,60000),
+                   eleft2=$(`#${id}`).css('left');
+               console.log($(`#${id}`).css('top'));
+               let eleft1=parseInt($(`#${id}`).css('left'))-75*level+'px',
+                   etop2=parseInt($(`#${id}`).css('top'))-75*level+'px',
                    w=0+'px';
                h=0+'px';
-               if(parseInt(eleft1)>1125){
+               if(parseInt(eleft1)>(1200-15-75*level*2)){
                    w=1200-parseInt(eleft1)+'px';
                }else if(parseInt(eleft1)<0){
-                   w=75+parseInt(eleft1)+'px';
+                   console.log(parseInt(eleft1));
+                   w=parseInt(eleft1)+150*level+15+'px';
+                   console.log(w);
                    eleft1=0+'px';
                }else{
-                   w=75+'px';
+                   w=15+150*level+'px';
+                   console.log(w);
                }
                if(parseInt(etop2)<0){
-                   h=75+parseInt(etop2)+'px';
+                   h=15+150*level+parseInt(etop2)+'px';
                    etop2=0+'px';
-               }else if(parseInt(etop2)>615){
-                   h=75-(parseInt(etop2)-615)+'px';
+               }else if(parseInt(etop2)>(690-15-150*level)){
+                   h=690-parseInt(etop2)+'px';
                }else{
-                   h=75+'px';
+                   h=15+150*level+'px';
                }
                $('#game').append(`<div id="${eId1}" style="position: absolute;top:${etop1};left:${eleft1};width:${w};height:15px;background-color: cadetblue;"></div>`);
 
@@ -99,7 +104,7 @@ File:<textarea id="file"></textarea>
                return new Promise((resolve,reject)=>{
                    socket.emit('explode',{e1:{id:eId1,top:etop1,left:eleft1,w:w},e2:{id:eId2,top:etop2,left:eleft2,h:h}});
                    setTimeout(()=>{
-                       resolve({eId1:eId1,eId2:eId2,bombId:bombId});
+                       resolve({eId1:eId1,eId2:eId2,bombId:id});
                    },300);
                });
            }
@@ -111,24 +116,24 @@ File:<textarea id="file"></textarea>
                 $('#game').append(e);
             });
             console.log(fruits);
+            count=0;
             fruits.map(e=>{
-                let color=e.type?'LightPink':'RebeccaPurple';
-
                  if(e.type&&e.name==='apple') {
-                     url = 'http://www.pngmart.com/files/1/Apple-Fruit-PNG-Transparent-Image.png';
+                     url = 'http://static.wixstatic.com/media/820b20_8eb9777d3f6945a6b2e1513609c334ee.png_srz_318_309_85_22_0.50_1.20_0.00_png_srz';
                  }
               if((!e.type)&&e.name==='apple'){
                      url='http://pngimg.com/uploads/apple/apple_PNG12404.png';
               }
               if(e.type&&e.name==='mango'){
-                     url='http://www.pngmart.com/files/1/Yellow-Mango-PNG.png';
+                     url='https://s3-us-west-2.amazonaws.com/s.cdpn.io/77047/mango.png';
               }
             if((!e.type)&&e.name==='mango'){
                 url='http://www.pngpix.com/wp-content/uploads/2016/03/Mango-PNG-image.png';
             }
                 return fruit.template(e.id,url,e.position.top,e.position.left)}).forEach((e)=>{
-                $('#game').append(e);
-
+                $(e).appendTo($('#game')).on('load',()=>{count++;if(count===fruits.length){$('#game').show();$('#loading').hide();
+                    socket.emit('login',me);
+                }});
             });
         });
         let fruit={
@@ -141,35 +146,42 @@ File:<textarea id="file"></textarea>
                 return `<div id="${id}" style="width:15px;height:15px;border:solid ${color} 1px;background-color: ${color};position:absolute;top:${top}px;left:${left}px;"></div>`;
             },
             position:{top:0,left:0},
-            bombs:[],
+            bombLevel:1,
+            speed:1,
             sd:sd,
             move(d,step){
-                if (d === 'up' && this.position.top>0 ) {
-                    this.position.top = this.position.top - step;
-                }
-                console.log(this.position.top);
-                if (d === 'down'&& this.position.top<675 ) {
-                    this.position.top = this.position.top + step;
-                }
-                if (d === 'right'&& this.position.left<=1175) {
-                    this.position.left = this.position.left + step;
-                }
-                if (d === 'left' && this.position.left>0) {
-                    this.position.left = this.position.left - step;
-                }
                 console.log('#'+sd);
-                $(`#${sd}`).css('top', this.position.top).css('left', this.position.left);
-                socket.emit('move',this);
+                console.log(step);
+                 _.times(step/5,(e)=>{
+                     console.log(e);
+                     let s=e+1;
+                     if (d === 'up' && this.position.top>0 ) {
+                         this.position.top = this.position.top - s*5;
+                     }
+                     console.log(this.position.top);
+                     if (d === 'down'&& this.position.top<675 ) {
+                         this.position.top = this.position.top + s*5;
+                     }
+                     if (d === 'right'&& this.position.left<1175) {
+                         this.position.left = this.position.left + s*5;
+                     }
+                     if (d === 'left' && this.position.left>0) {
+                         this.position.left = this.position.left - s*5;
+                     }
+                     $(`#${sd}`).css('top', this.position.top).css('left', this.position.left);
+                     socket.emit('move',this);
+                 });
+                   // $(`#${sd}`).css('top', this.position.top).css('left', this.position.left);
             },
             init(){
                 $('#game').append(this.template(sd,'aquamarine',this.position));
             },
             bomb(){
-                const bombId=_.random(10000, 20000);
+                const bombId=_.random(30000,40000);
 
                 $('#game').append(bomb.template(bombId,{top:this.position.top,left:this.position.left}));
-                this.bombs.push({top:this.position.top,left:this.position.left,level:2});
-                bomb.setting(800,bombId).then(bomb.explode).then(bomb.remove);
+                //this.bombs.push({top:this.position.top,left:this.position.left,level:2});
+                bomb.setting(1200,bombId,this.bombLevel).then(bomb.explode).then(bomb.remove);
 
                socket.emit('bomb',{id:bombId,position:{top:this.position.top,left:this.position.left}
 
@@ -177,30 +189,36 @@ File:<textarea id="file"></textarea>
             },
         };
         me.init();
-        $('body').on('keydown',(e)=>{
-            console.log(me.sd);
 
+        $('body').on('keydown',_.throttle((e)=>{
+            console.log(me.sd);
+            step=1;
+            if(me.speed>1){
+                step=1;
+            }else{
+               step= 1/me.speed;
+            }
             if(me.sd) {
-                const code = event.which || event.keyCode;
+                const code = e.which || e.keyCode;
                 if (code === 37) {
-                    me.move('left', 15);
+                    me.move('left', 5*step);
                 }
                 if (code === 38) {
-                    me.move('up', 15);
+                    me.move('up', 5*step);
                 }
                 if (code === 39) {
-                    me.move('right', 15);
+                    me.move('right', 5*step);
                 }
                 if (code === 40) {
-                    me.move('down', 15);
+                    me.move('down', 5*step);
                 }
                 if (code === 32) {
                     me.bomb();
                 }
             }
             return false;
-        });
-        socket.emit('login',me);
+        },100*me.speed));
+
         socket.on('newuser',(e)=>{
             userList.push(e);
             console.log(e.socketId);
@@ -229,6 +247,17 @@ File:<textarea id="file"></textarea>
                socket.emit('dead',me.sd);
                me.sd=null;
            }
+        });
+        socket.on('eatFruit',({fruit,user})=>{
+            $(`#${fruit}`).remove();
+
+            me.speed=user.speed;
+            console.log(me.speed);
+            me.bombLevel=user.bombLevel;
+            if(user.speed>1) {
+              //  me.speed=user.speed;
+               _.delay(()=>{me.speed=1;},30000);
+            }
         });
     });
 </script>

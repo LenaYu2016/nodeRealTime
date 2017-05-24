@@ -9,17 +9,21 @@ module.exports= class User{
         this.speed=speed;
         this.bombLevel=bombLevel;
     }
-    addSpeed(speed=1){
-        this.speed=this.speed+speed;
+    addSpeed(speed=0.5){
+        this.speed=this.speed*speed;
     }
     addBombLevel(bombLevel=1){
         this.bombLevel=this.bombLevel+bombLevel;
     }
-    reduceSpeed(speed=1){
-        this.speed-=speed;
+    reduceSpeed(speed=2){
+       this.speed=this.speed*speed;
     }
     reduceBombLevel(bombLevel=1){
-        this.bombLevel-=bombLevel;
+        if(this.bombLevel===1){
+            this.bombLevel=1;
+        }else {
+            this.bombLevel -= bombLevel;
+        }
     }
     eat(fruit){
        fruit.energy(this);

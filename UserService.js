@@ -24,8 +24,8 @@ module.exports= class UserService{
    }
    checkBomb(bposition) {
      return this.getAll().filter((e)=>{
-         let c1=(parseInt(bposition.e1.top)===e.position.top)&&(e.position.left>=parseInt(bposition.e1.left))&&((parseInt(bposition.e1.left)+parseInt(bposition.e1.w))>e.position.left);
-         let c2=(parseInt(bposition.e2.left)===e.position.left)&&(e.position.top>=parseInt(bposition.e2.top))&&((parseInt(bposition.e2.top)+parseInt(bposition.e2.h))>e.position.top);
+         let c1=(parseInt(bposition.e1.top)-15<e.position.top)&&(parseInt(bposition.e1.top)+15>e.position.top)&&(e.position.left>parseInt(bposition.e1.left)-15)&&((parseInt(bposition.e1.left)+parseInt(bposition.e1.w))>e.position.left);
+         let c2=(parseInt(bposition.e2.left)-15<e.position.left)&&(parseInt(bposition.e2.left)+15>e.position.left)&&(e.position.top>parseInt(bposition.e2.top)-15)&&((parseInt(bposition.e2.top)+parseInt(bposition.e2.h))>e.position.top);
          return c1||c2;
      }).map(e=>e.socketId);
    }

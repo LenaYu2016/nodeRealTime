@@ -57,9 +57,18 @@ io.on('connection', socket=>{
       socket.broadcast.emit('newuser',newuser);
     });
     socket.on('move',(e)=>{
-        userService.find(e.sd).position=e.position;
+        let user=userService.find(e.sd);
+       user.position=e.position;
        if(explodeBombService.checkArea(e.position.top,e.position.left)){
            io.emit('die',[e.sd]);
+       }
+       if(fruit=fruitService.checkArea(e.position)){
+           console.log('eat');
+           user.eat(fruit);
+           console.log(user);
+           console.log(fruit);
+           fruitService.remove(fruit.id);
+           io.emit('eatFruit',{fruit:fruit.id,user:user});
        }
         socket.broadcast.emit('newstep',userService.find(e.sd));
     });
